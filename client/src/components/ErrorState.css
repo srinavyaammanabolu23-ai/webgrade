@@ -1,0 +1,43 @@
+.error-state {
+  text-align: center;
+  padding: var(--space-3xl) var(--space-xl);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-md);
+}
+
+.error-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--error);
+  margin-bottom: var(--space-sm);
+}
+
+.error-message {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xl);
+  line-height: 1.6;
+}
+
+.error-retry {
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: var(--space-sm) var(--space-xl);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.error-retry:hover {
+  transform: scale(1.05);
+  box-shadow: var(--accent-glow);
+}

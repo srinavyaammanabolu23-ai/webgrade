@@ -1,0 +1,60 @@
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.stars-row {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  transition: all var(--transition-fast);
+  line-height: 1;
+}
+
+.star--filled {
+  color: var(--star-filled);
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+
+.star--empty {
+  color: var(--star-empty);
+}
+
+/* Sizes */
+.rating-stars--sm .star { font-size: 14px; }
+.rating-stars--md .star { font-size: 18px; }
+.rating-stars--lg .star { font-size: 24px; }
+
+/* Tier Badge */
+.tier-badge {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--bg-glass);
+}
+
+.tier-platinum {
+  background: var(--tier-platinum);
+  color: #1e293b;
+}
+
+.tier-gold {
+  background: var(--tier-gold);
+  color: #1e293b;
+}
+
+.tier-silver {
+  background: var(--tier-silver);
+  color: #1e293b;
+}
+
+.tier-bronze {
+  background: var(--tier-bronze);
+  color: #1e293b;
+}
