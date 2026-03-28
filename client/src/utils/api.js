@@ -12,13 +12,16 @@ const api = axios.create({
 /**
  * Search for products.
  * @param {string} query - search term
+ * @param {object} options - optional search options
+ * @param {boolean} options.force - bypass vague intent filter
  * @returns {Promise<object>} search response
  */
-export async function searchProducts(query) {
+export async function searchProducts(query, options = {}) {
   try {
-    const { data } = await api.get('/api/search', {
-      params: { q: query },
-    });
+    const params = { q: query };
+    if (options.force) params.force = 'true';
+
+    const { data } = await api.get('/api/search', { params });
     return data;
   } catch (err) {
     if (err.response) {

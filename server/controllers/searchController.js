@@ -36,9 +36,10 @@ async function handleSearch(req, res) {
       return res.json({ ...cached, fromCache: true });
     }
 
-    // Resolve intent
-    const intent = resolveIntent(query);
-    console.log(`🔍 Query: "${query}" → domain: ${intent.domain}, confidence: ${intent.confidence}%, vague: ${intent.isVague}`);
+    // Resolve intent (support ?force=true to bypass vague filter)
+    const forceSearch = req.query.force === 'true';
+    const intent = resolveIntent(query, { forceSearch });
+    console.log(`🔍 Query: "${query}" → domain: ${intent.domain}, confidence: ${intent.confidence}%, vague: ${intent.isVague}${forceSearch ? ' [FORCED]' : ''}`);
 
     // If vague → suggestions mode
     if (intent.isVague) {

@@ -7,6 +7,7 @@ import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 
 const MAX_HISTORY = 50;
+const GUEST_KEY = 'wg-guest-history';
 
 export function useSearchHistory() {
   const { user } = useAuth();
@@ -15,11 +16,18 @@ export function useSearchHistory() {
 
   // Load history on mount / user change
   useEffect(() => {
+    // Guest mode — load from localStorage
     if (!user) {
-      setHistory([]);
+      try {
+        const local = JSON.parse(localStorage.getItem(GUEST_KEY) || '[]');
+        setHistory(local);
+      } catch {
+        setHistory([]);
+      }
       return;
     }
 
+    // Authenticated — load from Firestore
     async function load() {
       setLoading(true);
       try {
@@ -47,8 +55,24 @@ export function useSearchHistory() {
 
   // Add a search to history
   const addSearch = useCallback(async (queryStr, resultCount, topResult) => {
-    if (!user) return;
+    // Guest mode — save to localStorage
+    if (!user) {
+      const entry = {
+        id: Date.now().toString(),
+        query: queryStr,
+        resultCount: resultCount || 0,
+        topResult: topResult || '',
+        timestamp: { seconds: Math.floor(Date.now() / 1000) },
+      };
+      setHistory(prev => {
+        const updated = [entry, ...prev].slice(0, MAX_HISTORY);
+        localStorage.setItem(GUEST_KEY, JSON.stringify(updated));
+        return updated;
+      });
+      return;
+    }
 
+    // Authenticated — save to Firestore
     const entry = {
       uid: user.uid,
       query: queryStr,
@@ -83,8 +107,14 @@ export function useSearchHistory() {
 
   // Clear all history
   const clearHistory = useCallback(async () => {
-    if (!user) return;
+    // Guest mode
+    if (!user) {
+      localStorage.removeItem(GUEST_KEY);
+      setHistory([]);
+      return;
+    }
 
+    // Authenticated
     try {
       const q = query(
         collection(db, 'searchHistory'),

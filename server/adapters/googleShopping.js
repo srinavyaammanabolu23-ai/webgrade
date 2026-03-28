@@ -12,6 +12,7 @@ const INDIAN_RETAILERS = {
   'blinkit.com': { name: 'Blinkit', icon: '⚡' },
   'swiggy.com': { name: 'Swiggy Instamart', icon: '🏪' },
   'zepto.co.in': { name: 'Zepto', icon: '🚀' },
+  'dunzo.com': { name: 'Dunzo Daily', icon: '🛵' },
   'jiomart.com': { name: 'JioMart', icon: '🏬' },
   'myntra.com': { name: 'Myntra', icon: '👗' },
   'nykaa.com': { name: 'Nykaa', icon: '💄' },
@@ -24,6 +25,7 @@ const INDIAN_RETAILERS = {
   'netmeds.com': { name: 'Netmeds', icon: '💊' },
   '1mg.com': { name: '1mg', icon: '💊' },
   'apollopharmacy.in': { name: 'Apollo Pharmacy', icon: '💊' },
+  'apollo247.com': { name: 'Apollo 24/7', icon: '🏥' },
 };
 
 /**

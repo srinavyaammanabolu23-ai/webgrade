@@ -1,43 +1,49 @@
 .error-state {
   text-align: center;
-  padding: var(--space-3xl) var(--space-xl);
-  max-width: 480px;
-  margin: 0 auto;
+  max-width: 500px;
+  margin: var(--space-2xl) auto;
+  padding: var(--space-xl);
+  background: var(--bg-card);
+  border: 1px solid rgba(248, 113, 113, 0.12);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .error-icon {
-  font-size: 48px;
+  font-size: 40px;
   margin-bottom: var(--space-md);
 }
 
 .error-title {
   font-size: var(--font-size-xl);
   font-weight: 700;
-  color: var(--error);
   margin-bottom: var(--space-sm);
+  color: var(--error);
 }
 
 .error-message {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
   line-height: 1.6;
 }
 
 .error-retry {
   background: var(--accent-gradient);
-  color: white;
+  color: #fff;
   border: none;
   border-radius: var(--radius-full);
-  padding: var(--space-sm) var(--space-xl);
+  padding: 10px 24px;
   font-family: var(--font-family);
   font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.3s var(--ease-out);
+  box-shadow: 0 4px 16px rgba(167, 139, 250, 0.2);
 }
 
 .error-retry:hover {
-  transform: scale(1.05);
-  box-shadow: var(--accent-glow);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(167, 139, 250, 0.35);
 }

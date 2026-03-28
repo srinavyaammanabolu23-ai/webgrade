@@ -1,10 +1,71 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useEffect, useRef, useState } from 'react';
 import './LandingPage.css';
+
+function AnimatedCounter({ target, suffix = '' }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const animated = useRef(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !animated.current) {
+        animated.current = true;
+        let start = 0;
+        const end = parseInt(target);
+        const duration = 1500;
+        const startTime = Date.now();
+        const step = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          setCount(Math.floor(eased * end));
+          if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }
+    }, { threshold: 0.5 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target]);
+
+  return <span ref={ref}>{count}{suffix}</span>;
+}
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const heroRef = useRef(null);
+
+  // Parallax effect on hero glows
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!heroRef.current) return;
+      const scrollY = window.scrollY;
+      const glows = heroRef.current.querySelectorAll('.hero-glow');
+      glows.forEach((glow, i) => {
+        const speed = 0.3 + i * 0.15;
+        glow.style.transform = `translateY(${scrollY * speed}px)`;
+      });
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Scroll-triggered animations
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+    document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="landing">
@@ -35,7 +96,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ───── Hero ───── */}
-      <section className="land-hero">
+      <section className="land-hero" ref={heroRef}>
         <div className="hero-glow hero-glow-1" />
         <div className="hero-glow hero-glow-2" />
         <div className="hero-glow hero-glow-3" />
@@ -59,12 +120,12 @@ export default function LandingPage() {
               {user ? 'Open Dashboard' : 'Start Comparing — Free'}
               <span className="btn-arrow">→</span>
             </button>
-            <button className="land-btn land-btn-outline" onClick={() => navigate('/login')}>
-              Watch Demo
+            <button className="land-btn land-btn-outline" onClick={() => navigate('/app')}>
+              Try it Now
             </button>
           </div>
           <div className="hero-stats fade-up delay-4">
-            <div className="stat"><span className="stat-num">20+</span><span className="stat-label">Sources</span></div>
+            <div className="stat"><span className="stat-num"><AnimatedCounter target="20" suffix="+" /></span><span className="stat-label">Sources</span></div>
             <div className="stat-divider" />
             <div className="stat"><span className="stat-num">₹ INR</span><span className="stat-label">All Prices</span></div>
             <div className="stat-divider" />
@@ -98,43 +159,27 @@ export default function LandingPage() {
       {/* ───── Features ───── */}
       <section className="land-features">
         <div className="land-section-inner">
-          <h2 className="section-title fade-up">
+          <h2 className="section-title scroll-reveal">
             Why <span className="land-accent">WebGrade</span>?
           </h2>
-          <p className="section-sub fade-up">
+          <p className="section-sub scroll-reveal">
             One search. Every platform. Real prices. Smart grades.
           </p>
           <div className="features-grid">
-            <div className="feature-card glass fade-up delay-1">
-              <div className="feature-icon">🔍</div>
-              <h3>Smart Search</h3>
-              <p>Type anything — medicine, grocery, electronics. Our AI classifies your intent and fetches from the right sources.</p>
-            </div>
-            <div className="feature-card glass fade-up delay-2">
-              <div className="feature-icon">🇮🇳</div>
-              <h3>India-First</h3>
-              <p>Prices from Flipkart, Amazon India, BigBasket, Zepto, Blinkit, JioMart, PharmEasy and 15+ Indian platforms.</p>
-            </div>
-            <div className="feature-card glass fade-up delay-3">
-              <div className="feature-icon">⭐</div>
-              <h3>Grading System</h3>
-              <p>Every product rated Bronze to Platinum based on data quality, price verification, and source reliability.</p>
-            </div>
-            <div className="feature-card glass fade-up delay-1">
-              <div className="feature-icon">💰</div>
-              <h3>All Prices in ₹</h3>
-              <p>No guessing with USD/EUR. Every international price auto-converted to INR with live exchange rates.</p>
-            </div>
-            <div className="feature-card glass fade-up delay-2">
-              <div className="feature-icon">🛡️</div>
-              <h3>Verified Only</h3>
-              <p>Zero fake prices. Zero guesswork. If a price isn't verified from the API, we show "Not available".</p>
-            </div>
-            <div className="feature-card glass fade-up delay-3">
-              <div className="feature-icon">📊</div>
-              <h3>Search History</h3>
-              <p>Your searches saved securely. Re-run any comparison anytime. Track price changes over time.</p>
-            </div>
+            {[
+              { icon: '🔍', title: 'Smart Search', desc: 'Type anything — medicine, grocery, electronics. Our AI classifies your intent and fetches from the right sources.' },
+              { icon: '🇮🇳', title: 'India-First', desc: 'Prices from Flipkart, Amazon India, BigBasket, Zepto, Blinkit, JioMart, PharmEasy and 15+ Indian platforms.' },
+              { icon: '⭐', title: 'Grading System', desc: 'Every product rated Bronze to Platinum based on data quality, price verification, and source reliability.' },
+              { icon: '💰', title: 'All Prices in ₹', desc: 'No guessing with USD/EUR. Every international price auto-converted to INR with live exchange rates.' },
+              { icon: '🛡️', title: 'Verified Only', desc: 'Zero fake prices. Zero guesswork. If a price isn\'t verified from the API, we show "Not available".' },
+              { icon: '📊', title: 'Search History', desc: 'Your searches saved securely. Re-run any comparison anytime. Track price changes over time.' },
+            ].map((f, i) => (
+              <div key={f.title} className="feature-card glass scroll-reveal" style={{ transitionDelay: `${i * 80}ms` }}>
+                <div className="feature-icon">{f.icon}</div>
+                <h3>{f.title}</h3>
+                <p>{f.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -142,31 +187,24 @@ export default function LandingPage() {
       {/* ───── How It Works ───── */}
       <section className="land-how">
         <div className="land-section-inner">
-          <h2 className="section-title fade-up">How It <span className="land-accent">Works</span></h2>
+          <h2 className="section-title scroll-reveal">How It <span className="land-accent">Works</span></h2>
           <div className="how-steps">
-            <div className="how-step fade-up delay-1">
-              <div className="step-number">01</div>
-              <div className="step-content">
-                <h3>Search</h3>
-                <p>Type any product — "paracetamol 500mg", "nutella", "iPhone 15"</p>
+            {[
+              { num: '01', title: 'Search', desc: 'Type any product — "paracetamol 500mg", "nutella", "iPhone 15"' },
+              { num: '02', title: 'Compare', desc: 'See real-time prices from 20+ sources side-by-side with star ratings' },
+              { num: '03', title: 'Decide', desc: 'Pick the best deal with our Bronze-to-Platinum grading confidence' },
+            ].map((step, i) => (
+              <div key={step.num} className="how-step-group">
+                <div className="how-step scroll-reveal" style={{ transitionDelay: `${i * 150}ms` }}>
+                  <div className="step-number">{step.num}</div>
+                  <div className="step-content">
+                    <h3>{step.title}</h3>
+                    <p>{step.desc}</p>
+                  </div>
+                </div>
+                {i < 2 && <div className="how-connector" />}
               </div>
-            </div>
-            <div className="how-connector" />
-            <div className="how-step fade-up delay-2">
-              <div className="step-number">02</div>
-              <div className="step-content">
-                <h3>Compare</h3>
-                <p>See real-time prices from 20+ sources side-by-side with star ratings</p>
-              </div>
-            </div>
-            <div className="how-connector" />
-            <div className="how-step fade-up delay-3">
-              <div className="step-number">03</div>
-              <div className="step-content">
-                <h3>Decide</h3>
-                <p>Pick the best deal with our Bronze-to-Platinum grading confidence</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -174,8 +212,8 @@ export default function LandingPage() {
       {/* ───── Trusted Sources ───── */}
       <section className="land-sources">
         <div className="land-section-inner">
-          <h2 className="section-title fade-up">Trusted <span className="land-accent">Sources</span></h2>
-          <div className="sources-ribbon fade-up delay-1">
+          <h2 className="section-title scroll-reveal">Trusted <span className="land-accent">Sources</span></h2>
+          <div className="sources-ribbon scroll-reveal">
             {[
               { name: 'Flipkart', color: '#2874f0' },
               { name: 'Amazon', color: '#ff9900' },
@@ -201,11 +239,11 @@ export default function LandingPage() {
       <section className="land-cta">
         <div className="cta-glow" />
         <div className="land-section-inner">
-          <h2 className="cta-title fade-up">Ready to find the best deal?</h2>
-          <p className="cta-sub fade-up delay-1">
+          <h2 className="cta-title scroll-reveal">Ready to find the best deal?</h2>
+          <p className="cta-sub scroll-reveal">
             Join WebGrade for free and start comparing prices across India's top platforms.
           </p>
-          <button className="land-btn land-btn-hero fade-up delay-2" onClick={() => navigate(user ? '/app' : '/register')}>
+          <button className="land-btn land-btn-hero scroll-reveal" onClick={() => navigate(user ? '/app' : '/register')}>
             {user ? 'Go to Dashboard' : 'Create Free Account'}
             <span className="btn-arrow">→</span>
           </button>

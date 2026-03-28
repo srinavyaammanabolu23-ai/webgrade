@@ -1,20 +1,76 @@
 .source-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--badge-color);
-  background: color-mix(in srgb, var(--badge-color) 12%, transparent);
+  gap: 5px;
   padding: 3px 10px;
   border-radius: var(--radius-full);
-  border: 1px solid color-mix(in srgb, var(--badge-color) 25%, transparent);
-  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.25s var(--ease-out);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-.source-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--badge-color);
+.source-badge.source-ebay {
+  background: rgba(0, 100, 210, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(0, 100, 210, 0.15);
+}
+
+.source-badge.source-fda {
+  background: rgba(0, 135, 90, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(0, 135, 90, 0.15);
+}
+
+.source-badge.source-off {
+  background: rgba(255, 105, 0, 0.12);
+  color: #fb923c;
+  border: 1px solid rgba(255, 105, 0, 0.15);
+}
+
+.source-badge.source-upc {
+  background: rgba(124, 58, 237, 0.12);
+  color: #a78bfa;
+  border: 1px solid rgba(124, 58, 237, 0.15);
+}
+
+.source-badge.source-google {
+  background: rgba(66, 133, 244, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(66, 133, 244, 0.15);
+}
+
+.source-badge.source-default {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .source-badge.source-ebay {
+  background: rgba(0, 100, 210, 0.08);
+  color: #2563eb;
+}
+[data-theme="light"] .source-badge.source-fda {
+  background: rgba(0, 135, 90, 0.08);
+  color: #059669;
+}
+[data-theme="light"] .source-badge.source-off {
+  background: rgba(255, 105, 0, 0.08);
+  color: #ea580c;
+}
+[data-theme="light"] .source-badge.source-upc {
+  background: rgba(124, 58, 237, 0.08);
+  color: #7c3aed;
+}
+[data-theme="light"] .source-badge.source-google {
+  background: rgba(66, 133, 244, 0.08);
+  color: #2563eb;
+}
+[data-theme="light"] .source-badge.source-default {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-secondary);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }

@@ -1,8 +1,8 @@
 /**
  * Intent Resolver — classifies search queries and assigns confidence scores.
  *
- * High confidence (≥60%) → fetch live data from adapters
- * Low confidence (<60%)  → return suggestions only
+ * High confidence (≥55%) → fetch live data from adapters
+ * Low confidence (<55%)  → return suggestions only
  */
 
 // Medicine / pharma keywords
@@ -14,6 +14,7 @@ const MEDICINE_TERMS = new Set([
   'crocin', 'combiflam', 'allegra', 'montek', 'augmentin', 'ciprofloxacin',
   'diclofenac', 'ranitidine', 'losartan', 'atorvastatin', 'amlodipine',
   'drug', 'medicine', 'pharmaceutical', 'prescription', 'otc',
+  'vitamin', 'supplement', 'antibiotic', 'antacid', 'painkiller',
 ]);
 
 // Food / grocery keywords
@@ -27,12 +28,47 @@ const FOOD_TERMS = new Set([
   'grocery', 'snacks', 'munchies', 'pack', 'grams', 'kg', 'liter',
 ]);
 
+// Electronics / technology keywords
+const ELECTRONICS_TERMS = new Set([
+  'phone', 'mobile', 'smartphone', 'laptop', 'tablet', 'computer', 'pc',
+  'headphones', 'earbuds', 'earphones', 'speaker', 'monitor', 'keyboard',
+  'mouse', 'charger', 'cable', 'adapter', 'powerbank', 'camera', 'tv',
+  'television', 'smartwatch', 'watch', 'fitness', 'tracker', 'drone',
+  'printer', 'router', 'wifi', 'bluetooth', 'usb', 'hdmi', 'ssd', 'hdd',
+  'ram', 'processor', 'gpu', 'console', 'gaming', 'controller',
+  'pro', 'max', 'ultra', 'plus', 'mini', 'lite', 'se', 'air',
+  'gb', 'tb', '5g', '4g', 'oled', 'amoled', 'lcd', 'led',
+]);
+
+// Known brands — if a query contains any of these, it's likely specific enough
+const KNOWN_BRANDS = new Set([
+  // Electronics
+  'apple', 'iphone', 'ipad', 'macbook', 'airpods', 'imac',
+  'samsung', 'galaxy', 'oneplus', 'xiaomi', 'redmi', 'poco', 'realme',
+  'oppo', 'vivo', 'motorola', 'moto', 'nokia', 'nothing', 'pixel', 'google',
+  'sony', 'lg', 'hp', 'dell', 'lenovo', 'asus', 'acer', 'msi',
+  'jbl', 'bose', 'sennheiser', 'boat', 'noise', 'fire-boltt', 'amazfit',
+  'playstation', 'xbox', 'nintendo', 'gopro', 'canon', 'nikon', 'fujifilm',
+  'dyson', 'philips', 'panasonic', 'whirlpool', 'haier', 'bosch',
+  // Food brands
+  'nestle', 'cadbury', 'britannia', 'parle', 'amul', 'haldiram',
+  'pepsi', 'coca-cola', 'coke', 'sprite', 'fanta', 'tropicana',
+  'maggi', 'knorr', 'heinz', 'kelloggs',
+  // Fashion
+  'nike', 'adidas', 'puma', 'reebok', 'levis', 'zara',
+  // Delivery/Pharmacy Platforms
+  'swiggy', 'instamart', 'blinkit', 'zepto', 'dunzo', 'bigbasket', 'bbnow',
+  'apollo', 'pharmeasy', 'netmeds', '1mg', 'flipkart', 'amazon',
+]);
+
 /**
  * Resolve the intent of a search query.
  * @param {string} query - user's search query
+ * @param {object} options - optional flags
+ * @param {boolean} options.forceSearch - bypass vague filter (for "Try:" chips)
  * @returns {{ domain: string, confidence: number, suggestions: string[], isVague: boolean }}
  */
-function resolveIntent(query) {
+function resolveIntent(query, options = {}) {
   if (!query || typeof query !== 'string') {
     return { domain: 'unknown', confidence: 0, suggestions: [], isVague: true };
   }
@@ -42,16 +78,16 @@ function resolveIntent(query) {
 
   let medicineScore = 0;
   let foodScore = 0;
-  let generalScore = 0;
+  let electronicsScore = 0;
+  let brandBonus = 0;
 
   // Score each word
   for (const word of words) {
     if (MEDICINE_TERMS.has(word)) medicineScore += 25;
     if (FOOD_TERMS.has(word)) foodScore += 25;
+    if (ELECTRONICS_TERMS.has(word)) electronicsScore += 25;
+    if (KNOWN_BRANDS.has(word)) brandBonus += 30;
   }
-
-  // Check if multi-word (more specific = higher confidence)
-  const specificityBonus = Math.min(words.length * 10, 30);
 
   // Check for dosage patterns (e.g. "500mg", "200ml") → strong medicine signal
   if (/\d+\s*(mg|ml|mcg|iu)/i.test(cleaned)) {
@@ -63,42 +99,76 @@ function resolveIntent(query) {
     foodScore += 30;
   }
 
-  // Determine domain
+  // Check for storage/model patterns (e.g. "128gb", "256gb") → electronics signal
+  if (/\d+\s*(gb|tb)\b/i.test(cleaned)) {
+    electronicsScore += 30;
+  }
+
+  // Check for model numbers (e.g. "15", "s24", "14 pro")
+  if (/\d+/.test(cleaned) && brandBonus > 0) {
+    electronicsScore += 20;
+  }
+
+  // Multi-word queries are more specific
+  const specificityBonus = Math.min(words.length * 12, 36);
+
+  // Determine domain & confidence
+  const scores = {
+    medicine: medicineScore,
+    food: foodScore,
+    electronics: electronicsScore,
+  };
+
+  const topDomain = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
   let domain = 'general';
   let baseConfidence = 30;
 
-  if (medicineScore > foodScore && medicineScore > 0) {
-    domain = 'medicine';
-    baseConfidence = Math.min(medicineScore + specificityBonus, 95);
-  } else if (foodScore > medicineScore && foodScore > 0) {
-    domain = 'food';
-    baseConfidence = Math.min(foodScore + specificityBonus, 95);
-  } else if (words.length >= 3) {
+  if (topDomain[1] > 0) {
+    domain = topDomain[0];
+    baseConfidence = Math.min(topDomain[1] + specificityBonus + brandBonus, 95);
+  } else if (brandBonus > 0) {
     domain = 'general';
-    baseConfidence = 50 + specificityBonus;
+    baseConfidence = Math.min(brandBonus + specificityBonus, 95);
+  } else if (words.length >= 2) {
+    domain = 'general';
+    baseConfidence = 45 + specificityBonus;
   } else {
     domain = 'general';
-    baseConfidence = 30 + specificityBonus;
+    baseConfidence = 25 + specificityBonus;
   }
 
-  const isVague = baseConfidence < 60;
+  // Force search bypasses vagueness (used by "Try:" chips and "search anyway")
+  const isVague = options.forceSearch ? false : baseConfidence < 55;
 
-  // Generate suggestions for vague queries
+  // Generate context-aware suggestions for vague queries
   const suggestions = [];
   if (isVague) {
-    if (domain === 'medicine' || domain === 'unknown') {
-      suggestions.push(`Try: "${cleaned} 500mg"`, `Try: "${cleaned} tablet"`, `Try: "${cleaned} brand name"`);
-    }
-    if (domain === 'food' || domain === 'unknown') {
-      suggestions.push(`Try: "${cleaned} 100g pack"`, `Try: "${cleaned} brand"`, `Try: "brand ${cleaned}"`);
-    }
-    if (domain === 'general') {
-      suggestions.push(`Try: "${cleaned} brand model"`, `Try a more specific search term`);
+    if (domain === 'medicine') {
+      suggestions.push(
+        `Try: "${cleaned} 500mg"`,
+        `Try: "${cleaned} tablet"`,
+      );
+    } else if (domain === 'food') {
+      suggestions.push(
+        `Try: "${cleaned} 500g"`,
+        `Try: "${cleaned} pack"`,
+      );
+    } else if (domain === 'electronics') {
+      suggestions.push(
+        `Try: "${cleaned} price"`,
+        `Try: "${cleaned} latest"`,
+      );
+    } else {
+      // General — provide helpful, non-generic suggestions
+      suggestions.push(
+        `Try: "${cleaned} price in india"`,
+        `Try adding a specific size, variant, or model number`,
+      );
     }
   }
 
   return {
-    domain,
+    domain: domain === 'electronics' ? 'general' : domain,
     confidence: baseConfidence,
     suggestions,
     isVague,

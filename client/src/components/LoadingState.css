@@ -27,7 +27,7 @@
 .loading-spinner-large {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(129, 140, 248, 0.2);
+  border: 3px solid rgba(167, 139, 250, 0.15);
   border-top-color: var(--accent-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -35,8 +35,8 @@
 
 .loading-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-lg);
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 20px;
 }
 
 .loading-card {
@@ -49,18 +49,18 @@
 }
 
 .loading-card-image {
-  height: 180px;
+  height: 170px;
 }
 
 .loading-card-content {
-  padding: var(--space-md);
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
 }
 
 .loading-card-title {
-  height: 20px;
+  height: 18px;
   width: 80%;
 }
 
@@ -76,11 +76,16 @@
 }
 
 .loading-card-price {
-  height: 24px;
+  height: 22px;
   width: 80px;
 }
 
 .loading-card-stars {
-  height: 18px;
-  width: 100px;
+  height: 16px;
+  width: 90px;
+}
+
+@media (max-width: 640px) {
+  .loading-cards { grid-template-columns: 1fr; }
+  .loading-card-image { height: 150px; }
 }

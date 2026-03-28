@@ -3,10 +3,14 @@ import './SearchBar.css';
 
 export default function SearchBar({ onSearch, isLoading }) {
   const [query, setQuery] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 640);
   const inputRef = useRef(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+    const handler = () => setIsMobile(window.innerWidth <= 640);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
   }, []);
 
   const handleSubmit = (e) => {
@@ -22,6 +26,10 @@ export default function SearchBar({ onSearch, isLoading }) {
     inputRef.current?.focus();
   };
 
+  const placeholder = isMobile
+    ? 'Search products...'
+    : 'Search products, medicines, food... (e.g. paracetamol 500mg, nutella)';
+
   return (
     <form className="search-bar" onSubmit={handleSubmit}>
       <div className="search-input-wrapper">
@@ -33,7 +41,7 @@ export default function SearchBar({ onSearch, isLoading }) {
           ref={inputRef}
           type="text"
           className="search-input"
-          placeholder="Search products, medicines, food... (e.g. paracetamol 500mg, nutella)"
+          placeholder={placeholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           disabled={isLoading}
