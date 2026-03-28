@@ -28,6 +28,13 @@ async function handleSearch(req, res) {
       });
     }
 
+    if (query.length > 150) {
+      return res.status(400).json({
+        success: false,
+        error: 'Search query is too long (maximum 150 characters)',
+      });
+    }
+
     // Check cache
     const cacheKey = `search:${query.toLowerCase()}`;
     const cached = cache.getSearch(cacheKey);

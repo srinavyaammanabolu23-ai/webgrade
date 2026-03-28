@@ -1,9 +1,33 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
 const config = require('./config');
 const searchRoutes = require('./routes/search');
 
 const app = express();
+
+// Trust reverse proxy (e.g., Render, Heroku) for accurate IP tracking
+app.set('trust proxy', 1);
+
+// Security Headers
+app.use(helmet());
+
+// Web requests Rate Limiter
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per window
+  message: {
+    success: false,
+    error: 'Too many requests from this IP, please try again after 15 minutes',
+  },
+  standardHeaders: true, 
+  legacyHeaders: false,
+});
+
+// Apply rate limiting to all API routes
+app.use('/api', apiLimiter);
 
 // CORS
 app.use(cors({
@@ -19,6 +43,9 @@ app.use(cors({
 
 // Parsing
 app.use(express.json());
+
+// Prevent HTTP Parameter Pollution
+app.use(hpp());
 
 // Request logging
 app.use((req, res, next) => {
