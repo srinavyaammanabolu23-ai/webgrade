@@ -1,5 +1,11 @@
 const axios = require('axios');
+const http = require('http');
+const https = require('https');
 const config = require('../config');
+
+// Force IPv4 to avoid DNS resolution timeouts on some machines
+const httpAgent = new http.Agent({ family: 4 });
+const httpsAgent = new https.Agent({ family: 4 });
 
 /**
  * Known Indian retailer domains → friendly source names and config.
@@ -70,6 +76,8 @@ async function searchGoogleShopping(query, limit = 10) {
         num: limit,
         api_key: config.serpapi.apiKey,
       },
+      httpAgent,
+      httpsAgent,
       timeout: 15000,
     });
 

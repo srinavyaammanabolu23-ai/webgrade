@@ -6,7 +6,7 @@ const API_BASE = import.meta.env.PROD
 
 const api = axios.create({
   baseURL: API_BASE,
-  timeout: 30000,
+  timeout: 60000, // Increased to 60s to handle free Render tier cold-starts
 });
 
 /**

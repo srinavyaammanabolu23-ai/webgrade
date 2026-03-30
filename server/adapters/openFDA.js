@@ -1,5 +1,10 @@
 const axios = require('axios');
+const http = require('http');
+const https = require('https');
 const config = require('../config');
+
+const httpAgent = new http.Agent({ family: 4 });
+const httpsAgent = new https.Agent({ family: 4 });
 
 /**
  * Search openFDA for drug label information.
@@ -22,7 +27,11 @@ async function searchOpenFDA(query, limit = 10) {
       url += `&api_key=${config.openFDA.apiKey}`;
     }
 
-    const { data } = await axios.get(url, { timeout: 12000 });
+    const { data } = await axios.get(url, { 
+      httpAgent, 
+      httpsAgent, 
+      timeout: 12000 
+    });
 
     if (!data.results || data.results.length === 0) {
       return [];

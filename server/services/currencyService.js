@@ -60,13 +60,21 @@ async function convertToINR(price, currency = 'USD') {
   // For other currencies, convert via USD as intermediary
   // using the free API that has all rates
   try {
-    const cachedAll = cache.getRate(`ALL_RATES`);
-    let rates = cachedAll;
+    let rates = cache.getRate('ALL_RATES');
 
     if (!rates) {
-      const { data } = await axios.get(config.currency.freeApiUrl, { timeout: 5000 });
-      if (data && data.rates) {
-        rates = data.rates;
+      try {
+        const { data } = await axios.get(config.currency.freeApiUrl, { timeout: 5000 });
+        if (data && data.rates) {
+          rates = data.rates;
+          cache.setRate('ALL_RATES', rates);
+        } else {
+          rates = { INR: FALLBACK_USD_TO_INR }; // Fallback to avoid retrying
+          cache.setRate('ALL_RATES', rates);
+        }
+      } catch (err) {
+        console.warn(`⚠️  Currency API failed for ${currency}, using fallback.`, err.message);
+        rates = { INR: FALLBACK_USD_TO_INR };
         cache.setRate('ALL_RATES', rates);
       }
     }

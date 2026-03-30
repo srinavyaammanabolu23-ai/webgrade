@@ -19,27 +19,35 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Fetch extra profile data from Firestore (gracefully fail if rules block)
-        let profile = {};
-        try {
-          const profileRef = doc(db, 'users', firebaseUser.uid);
-          const profileSnap = await getDoc(profileRef);
-          if (profileSnap.exists()) profile = profileSnap.data();
-        } catch (e) {
-          console.warn('Firestore read failed (check rules):', e.message);
-        }
-
+        // Optimistically set user right away
         setUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email,
-          displayName: firebaseUser.displayName || profile.displayName || 'User',
-          photoURL: firebaseUser.photoURL || profile.photoURL || null,
-          ...profile,
+          displayName: firebaseUser.displayName || 'User',
+          photoURL: firebaseUser.photoURL || null,
         });
+        setLoading(false);
+
+        // Fetch extra profile data from Firestore without blocking UI (gracefully fail if rules block)
+        try {
+          const profileRef = doc(db, 'users', firebaseUser.uid);
+          const profileSnap = await getDoc(profileRef);
+          if (profileSnap.exists()) {
+            const profile = profileSnap.data();
+            setUser(prev => prev ? {
+              ...prev,
+              displayName: firebaseUser.displayName || profile.displayName || 'User',
+              photoURL: firebaseUser.photoURL || profile.photoURL || null,
+              ...profile,
+            } : prev);
+          }
+        } catch (e) {
+          console.warn('Firestore read failed (check rules):', e.message);
+        }
       } else {
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
     return unsub;
   }, []);

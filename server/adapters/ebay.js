@@ -1,6 +1,11 @@
 const axios = require('axios');
+const http = require('http');
+const https = require('https');
 const config = require('../config');
 const cache = require('../services/cache');
+
+const httpAgent = new http.Agent({ family: 4 });
+const httpsAgent = new https.Agent({ family: 4 });
 
 let accessToken = null;
 let tokenExpiry = 0;
@@ -26,6 +31,8 @@ async function getAccessToken() {
           'Content-Type': 'application/x-www-form-urlencoded',
           Authorization: `Basic ${credentials}`,
         },
+        httpAgent,
+        httpsAgent,
         timeout: 10000,
       }
     );
@@ -70,6 +77,8 @@ async function searchEbay(query, limit = 5) {
         'X-EBAY-C-MARKETPLACE-ID': 'EBAY_US',
         'X-EBAY-C-ENDUSERCTX': 'contextualLocation=country%3DIN',
       },
+      httpAgent,
+      httpsAgent,
       timeout: 15000,
     });
 
@@ -81,6 +90,8 @@ async function searchEbay(query, limit = 5) {
           Authorization: `Bearer ${token}`,
           'X-EBAY-C-MARKETPLACE-ID': 'EBAY_US',
         },
+        httpAgent,
+        httpsAgent,
         timeout: 15000,
       });
 

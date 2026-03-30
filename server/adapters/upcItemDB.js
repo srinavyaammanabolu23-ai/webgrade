@@ -1,5 +1,10 @@
 const axios = require('axios');
+const http = require('http');
+const https = require('https');
 const config = require('../config');
+
+const httpAgent = new http.Agent({ family: 4 });
+const httpsAgent = new https.Agent({ family: 4 });
 
 /**
  * Search UPCItemDB for product pricing data.
@@ -23,6 +28,8 @@ async function searchUPCItemDB(query, limit = 5) {
         'Accept': 'application/json',
         'User-Agent': 'WebGrade/1.0',
       },
+      httpAgent,
+      httpsAgent,
       timeout: 10000,
     });
 
